@@ -1,0 +1,47 @@
+import random
+
+class Character:
+    def __init__(self, name, health, attack):
+        self.name = name
+        self.health = health
+        self.attack = attack
+
+    def is_alive(self):
+        return self.health > 0
+
+    def attack_enemy(self, enemy):
+        damage = random.randint(1, self.attack)
+        enemy.health -= damage
+        print(f"{self.name} attacks {enemy.name} for {damage} damage!")
+
+def battle(player, enemy):
+    print(f"A wild {enemy.name} appears!\n")
+    while player.is_alive() and enemy.is_alive():
+        player.attack_enemy(enemy)
+        if enemy.is_alive():
+            enemy.attack_enemy(player)
+            print(f"{player.name}'s health: {player.health}\t{enemy.name}'s health: {enemy.health}\n")
+    
+    if player.is_alive():
+        print(f"{player.name} defeated {enemy.name}!")
+    else:
+        print(f"{player.name} was defeated by {enemy.name}!")
+
+def main():
+    player_name = input("Enter your character's name: ")
+    player = Character(player_name, 100, 20)  # Player character with 100 health and 20 attack
+    enemies = [Character("Goblin", 40, 10), Character("Orc", 60, 15), Character("Dragon", 100, 25)]
+
+    while True:
+        enemy = random.choice(enemies)
+        battle(player, enemy)
+        if not player.is_alive():
+            print("Game Over!")
+            break
+        play_again = input("Do you want to play again? (yes/no): ").lower()
+        if play_again != 'yes':
+            print("Thanks for playing!")
+            break
+
+if __name__ == "__main__":
+    main()
