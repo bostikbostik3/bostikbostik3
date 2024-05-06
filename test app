@@ -1,0 +1,115 @@
+from flask import Flask, render_template, request, redirect, url_for, session
+
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'
+
+users = {}
+posts = []
+
+@app.route('/')
+def index():
+    if 'username' in session:
+        return render_template('index.html', username=session['username'], posts=posts)
+    return redirect(url_for('login'))
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username not in users:
+            users[username] = password
+            return redirect(url_for('login'))
+        return "Username already exists!"
+    return render_template('signup.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username in users and users[username] == password:
+            session['username'] = username
+            return redirect(url_for('index'))
+        return "Invalid username or password!"
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('index'))
+
+@app.route('/post', methods=['POST'])
+def post():
+    if 'username' in session:
+        content = request.form['content']
+        username = session['username']
+        posts.append({'username': username, 'content': content})
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Social Media App</title>
+</head>
+<body>
+    {% if username %}
+        <h1>Welcome, {{ username }}!</h1>
+        <h2>Create a Post</h2>
+        <form action="/post" method="post">
+            <textarea name="content" rows="4" cols="50"></textarea><br>
+            <input type="submit" value="Post">
+        </form>
+        <h2>Posts</h2>
+        {% for post in posts %}
+            <p>{{ post['username'] }}: {{ post['content'] }}</p>
+        {% endfor %}
+        <a href="/logout">Logout</a>
+    {% else %}
+        <a href="/login">Login</a> | <a href="/signup">Sign Up</a>
+    {% endif %}
+</body>
+</html>
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form action="/login" method="post">
+        <label>Username:</label><br>
+        <input type="text" name="username"><br>
+        <label>Password:</label><br>
+        <input type="password" name="password"><br>
+        <input type="submit" value="Login">
+    </form>
+    <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+</body>
+</html>
+<!-- signup.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up</title>
+</head>
+<body>
+    <h1>Sign Up</h1>
+    <form action="/signup" method="post">
+        <label>Username:</label><br>
+        <input type="text" name="username"><br>
+        <label>Password:</label><br>
+        <input type="password" name="password"><br>
+        <input type="submit" value="Sign Up">
+    </form>
+    <p>Already have an account? <a href="/login">Login</a></p>
+</body>
+</html>
+
